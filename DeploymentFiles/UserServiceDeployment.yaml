@@ -1,0 +1,64 @@
+﻿apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service-deployment
+  labels:
+    app: user-service
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      containers:
+      - name: user-service
+        image: shubham3152039/userapi
+        ports:
+        - containerPort: 80
+        env:
+          - name: DB_SERVER
+            valueFrom:
+              configMapKeyRef:
+                name: app-config
+                key: sql.Server
+          - name: DB_PORT
+            valueFrom:
+              configMapKeyRef:
+                name: app-config
+                key: sql.Port
+          - name: DB_DATABASE
+            valueFrom:
+              configMapKeyRef:
+                name: app-config
+                key: sql.Database
+          - name: DB_USERNAME
+            valueFrom:
+              configMapKeyRef:
+                name: app-config
+                key: sql.UserName
+          - name: DB_PASSWORD
+            valueFrom:
+              configMapKeyRef:
+                name: app-config
+                key: sql.Password
+
+---
+apiVersion: "v1"
+kind: "Service"
+metadata:
+  name: "user-service-deployment-service"
+  namespace: "default"
+  labels:
+    app: "user-service"
+spec:
+  ports:
+  - protocol: "TCP"
+    port: 80
+    targetPort: 80
+  selector:
+    app: "user-service"
+  type: "ClusterIP"

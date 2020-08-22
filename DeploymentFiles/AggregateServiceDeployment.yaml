@@ -1,0 +1,49 @@
+﻿apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aggregate-service-deployment
+  labels:
+    app: aggregate-service
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: aggregate-service
+  template:
+    metadata:
+      labels:
+        app: aggregate-service
+    spec:
+      containers:
+      - name: aggregate-service
+        image: shubham3152039/aggregatorapi
+        ports:
+        - containerPort: 80
+        env:
+        - name: USERAPI_URL
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: Url.UserApi
+        - name: ORDERAPI_URL
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: Url.OrderApi
+
+---
+apiVersion: "v1"
+kind: "Service"
+metadata:
+  name: "aggregate-service-deployment-service"
+  namespace: "default"
+  labels:
+    app: "aggregate-service"
+spec:
+  ports:
+  - protocol: "TCP"
+    port: 80
+    targetPort: 80
+  selector:
+    app: "aggregate-service"
+  type: "LoadBalancer"

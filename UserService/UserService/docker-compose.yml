@@ -1,0 +1,66 @@
+﻿version: '3'
+services: 
+  my-sql-server: 
+    image: mcr.microsoft.com/mssql/server
+    environment: 
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "P@ssword"
+      MSSQL_PID: "Express"
+    ports: 
+      - "1433:1433"
+    networks: 
+      - backend
+  user-api: 
+    build: .
+    image: shubham3152039/userapi
+    environment: 
+      DB_CONNECTION_STRING: Server=my-sql-server; Database=UserApi; User=sa; password=P@ssword
+    ports: 
+      - "8090:80"
+    depends_on:
+      - my-sql-server
+      - jagerservice
+    networks: 
+      - backend
+  orderapi:
+    image: shubham3152039/orderapi
+    build:
+      context: .
+      dockerfile: ../../OrderService/OrderService/Dockerfile
+    ports:
+      - "8091:80"
+    depends_on:
+      - jagerservice
+    networks: 
+      - backend
+  aggregatorapi:
+    image: shubham3152039/aggregatorapi
+    environment:
+      - USERAPI_URL=http://172.19.0.2/
+      - ORDERAPI_URL=http://172.19.0.3/
+    build:
+      context: .
+      dockerfile: ../../AggregatorService/AggregatorService/Dockerfile
+    ports:
+      - "8092:80"
+    depends_on:
+      - jagerservice
+    networks: 
+      - backend
+  jagerservice:
+    image: jaegertracing/all-in-one:latest
+    environment:
+      - COLLECTOR_ZIPKIN_HTTP_PORT=9411 
+    ports:
+      - "5775:5775/udp"
+      - "6831:6831/udp"
+      - "6832:6832/udp"
+      - "5778:5778"
+      - "16686:16686"
+      - "14268:14268"
+      - "9411:9411"
+    networks: 
+      - backend
+networks: 
+  backend: 
+    driver: bridge

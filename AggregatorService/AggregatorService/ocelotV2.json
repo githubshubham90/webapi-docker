@@ -1,0 +1,43 @@
+{
+  "ReRoutes": [
+    {
+      "DownstreamPathTemplate": "/api/user/{id}",
+      "DownstreamScheme": "http",
+      "UpstreamPathTemplate": "/user/{id}",
+      "ServiceName": "UserApi",
+      "UpstreamHttpMethod": ["Get"],
+      "LoadBalancerOption": {
+        "Type": "RoundRobin"
+      },
+      "Key": "UserDetails"
+    },
+    {
+      "DownstreamPathTemplate": "/api/orders/{id}",
+      "DownstreamScheme": "http",
+      "ServiceName": "OrderApi",
+      "UpstreamHttpMethod": [ "Get" ],
+      "UpstreamPathTemplate": "/orders/{id}",
+      "LoadBalancerOption": {
+        "Type": "RoundRobin"
+      },
+      "Key": "Orders"
+    }
+  ],
+  "Aggregates": [
+    {
+      "ReRouteKeys": [
+        "UserDetails",
+        "Orders"
+      ],
+      "UpstreamPathTemplate": "/orderdetails/{id}"
+    }
+  ],
+  "GlobalConfiguration": {
+    "UserServiceDiscovery": true,
+    "ServiceDiscoveryProvider": {
+      "Type": "Eureka",
+      "Host": "localhost",
+      "Port": "8761"
+    }
+  }
+}
